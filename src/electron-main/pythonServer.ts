@@ -6,23 +6,33 @@ import path from 'path';
 import { isViteDEV } from '../constants/env';
 
 function getPythonServerCMD() {
-    if (isViteDEV) return 'python backend/LiSA.py';
+    if (isViteDEV) {
+        return {
+            command: 'python',
+            args: ['backend/LiSA.py']
+        };
+    }
 
     switch (process.platform) {
         case 'win32':
-            return path.join(process.resourcesPath, 'resources/lisa', 'LiSA.exe');
+            return {
+                command: path.join(process.resourcesPath, 'resources/lisa', 'LiSA.exe'),
+                args: []
+            };
         case 'linux':
         case 'darwin':
-            return path.join(process.resourcesPath, 'resources/lisa', 'LiSA');
+            return {
+                command: path.join(process.resourcesPath, 'resources/lisa', 'LiSA'),
+                args: []
+            };
         default:
-            // Unknown Platform.
             return null;
     }
 }
 
 export function startPythonServer() {
-    const cmd = getPythonServerCMD();
-    if (!cmd) {
+    const cmdConfig = getPythonServerCMD();
+    if (!cmdConfig) {
         console.error('Unsupported platform or failed to get the command to run python server.');
         return;
     }
@@ -34,7 +44,7 @@ export function startPythonServer() {
 
     fs.writeFileSync(logPath, '', { encoding: 'utf8' }); // clear logs
 
-    const pythonServer = spawn(cmd, {
+    const pythonServer = spawn(cmdConfig.command, cmdConfig.args, {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, PYTHONUNBUFFERED: '1' }
     });
@@ -43,8 +53,13 @@ export function startPythonServer() {
     pythonServer.stdout.pipe(logStream);
     pythonServer.stderr.pipe(logStream);
 
-    pythonServer.on('close', (_) => {
+    pythonServer.on('close', (code) => {
+        console.log(`Python server exited with code ${code}`);
         logStream.end();
+    });
+
+    pythonServer.on('error', (err) => {
+        console.error('Failed to start Python server:', err);
     });
 }
 

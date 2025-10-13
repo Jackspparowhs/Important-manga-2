@@ -54,8 +54,8 @@ class Anime(Scraper):
 
 class Animepahe(Anime):
     _SITE_NAME: str = "animepahe"
-    site_url: str = "https://animepahe.ru"
-    api_url: str = "https://animepahe.ru/api"
+    site_url: str = "https://animepahe.com"
+    api_url: str = "https://animepahe.com/api"
     manifest_header = get_headers({"referer": "https://kwik.cx", "origin": "https://kwik.cx"})
 
     @classmethod
