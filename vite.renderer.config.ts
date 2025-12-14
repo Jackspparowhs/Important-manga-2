@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import path from 'path'; // <--- ADDED THIS
 
 import { pluginExposeRenderer } from './vite.base.config.js';
 
@@ -17,9 +18,8 @@ export default defineConfig((env) => {
         base: './',
         build: {
             outDir: `.vite/renderer/${name}`,
-            chunkSizeWarningLimit: Infinity, //Suppress Warning: Some chunks are larger than 500 kB after minification.
+            chunkSizeWarningLimit: Infinity,
             rollupOptions: {
-                // https://stackoverflow.com/questions/76694615/module-level-directives-cause-errors-when-bundled-use-client-was-ignored-caus
                 onwarn(warning, warn) {
                     if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
                     warn(warning);
@@ -29,6 +29,10 @@ export default defineConfig((env) => {
         plugins: [tsconfigPaths(), pluginExposeRenderer(name), react()],
         resolve: {
             preserveSymlinks: true,
+            alias: {
+                // <--- ADDED THIS BLOCK
+                src: path.resolve(__dirname, 'src'),
+            },
         },
         clearScreen: false,
         esbuild:
